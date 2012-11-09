@@ -4,6 +4,9 @@ GistMaker
 A simple OS X utility to create Gists with a few key commands!
 
 =========
+Download the binary: http://cl.ly/KnMW (probably only works on Mountain Lion).
+
+=========
 Usage: When the app launches, open your preferences to login and stuff.
 Set your key command... I think it defaults to cmd+option+shift+g
 Enjoy!
