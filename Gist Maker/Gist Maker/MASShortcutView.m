@@ -29,6 +29,7 @@
 @synthesize shortcutPlaceholder = _shortcutPlaceholder;
 @synthesize shortcutValueChange = _shortcutValueChange;
 @synthesize recording = _recording;
+@synthesize appearance = _appearance;
 
 #pragma mark -
 
@@ -169,7 +170,7 @@
         [self getShortcutRect:&shortcutRect hintRect:NULL];
         NSString *title = (self.recording
                            ? (_hinting
-                              ? NSLocalizedString(@"Use Old Shortuct", @"Cancel action button for non-empty shortcut in recording state")
+                              ? NSLocalizedString(@"Use Old Shortcut", @"Cancel action button for non-empty shortcut in recording state")
                               : (self.shortcutPlaceholder.length > 0
                                  ? self.shortcutPlaceholder
                                  : NSLocalizedString(@"Type New Shortcut", @"Non-empty shortcut button in recording state")))
