@@ -26,25 +26,22 @@ static NSString *const kGitHubGistMakerService = @"com.rclconcepts.gistmaker";
 
 @implementation GitHubAPIController
 
++ (id)allocWithZone:(NSZone *)zone { return [self sharedController]; }
++ (id)alloc 	{ return [self sharedController]; }
+- (id)init 		{ return self; }
++ (id)_alloc 	{ return [super allocWithZone:NULL]; } //this is important, because otherwise the object wouldn't be allocated
+- (id)_init 	{ return [super init]; }
+
 + (id)sharedController
 {
-    if (!sharedGitHubAPIController)
-        sharedGitHubAPIController = [[self alloc] init];
-    
-    return sharedGitHubAPIController;
-}
-
-- (id)init
-{
-    self = [super init];
-    
-    if (self)
-    {
-        [self setAuthenticationStatus:GitHubAuthenticationStatusVoid];
-        [self _authenticate];
-    }
-    
-    return self;
+    __strong static id _sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [[self _alloc] _init];
+			[_sharedInstance setAuthenticationStatus:GitHubAuthenticationStatusVoid];
+        [_sharedInstance _authenticate];
+    });
+    return _sharedInstance;
 }
 
 @synthesize authenticationStatus;
@@ -116,6 +113,16 @@ static NSString *const kGitHubGistMakerService = @"com.rclconcepts.gistmaker";
      
     }];
 }
+- (NSURL*) avatarURL {  return _avatarURL = _avatarURL ?: ^{
+
+	NSData *receivedData = [NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.github.com/users/%@", self.currentUser[@"username"]]] ];
+	id responseDict 		= [NSJSONSerialization JSONObjectWithData:receivedData options:0 error:nil];
+	return _avatarURL 	= !responseDict ? _avatarURL
+						  		: [NSURL URLWithString:[responseDict objectForKey:@"avatar_url"]];
+	}();
+}
+
+- (NSImage*) avatar { return _avatar = _avatar || !self.avatarURL ? _avatar : [NSImage.alloc initWithContentsOfURL:self.avatarURL]; }
 
 - (NSDictionary *)currentUser
 {
@@ -228,5 +235,7 @@ static NSString *const kGitHubGistMakerService = @"com.rclconcepts.gistmaker";
     [SSKeychain deletePasswordForService:kGitHubGistMakerService account:user];
     [self setAuthenticationStatus:GitHubAuthenticationStatusVoid];
 }
+
++ (NSSet*) keyPathsForValuesAffectingAvatar { return [NSSet setWithObject:@"authenticationStatus"]; }
 
 @end

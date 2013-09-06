@@ -4,7 +4,7 @@
 
 @interface MASShortcutDefaultsObserver : NSObject
 
-@property (nonatomic, readonly) NSString *userDefaultsKey;
+@property (weak, nonatomic, readonly) NSString *userDefaultsKey;
 @property (nonatomic, readonly, weak) MASShortcutView *shortcutView;
 
 - (id)initWithShortcutView:(MASShortcutView *)shortcutView userDefaultsKey:(NSString *)userDefaultsKey;
@@ -15,22 +15,24 @@
 
 @implementation MASShortcutView (UserDefaults)
 
-void *kDefaultsObserver = &kDefaultsObserver;
+void *MASAssociatedDefaultsObserver = &MASAssociatedDefaultsObserver;
 
 - (NSString *)associatedUserDefaultsKey
 {
-    MASShortcutDefaultsObserver *defaultsObserver = objc_getAssociatedObject(self, kDefaultsObserver);
+    MASShortcutDefaultsObserver *defaultsObserver = objc_getAssociatedObject(self, MASAssociatedDefaultsObserver);
     return defaultsObserver.userDefaultsKey;
 }
 
 - (void)setAssociatedUserDefaultsKey:(NSString *)associatedUserDefaultsKey
 {
     // First, stop observing previous shortcut view
-    objc_setAssociatedObject(self, kDefaultsObserver, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, MASAssociatedDefaultsObserver, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    if (associatedUserDefaultsKey.length == 0) return;
 
     // Next, start observing current shortcut view
     MASShortcutDefaultsObserver *defaultsObserver = [[MASShortcutDefaultsObserver alloc] initWithShortcutView:self userDefaultsKey:associatedUserDefaultsKey];
-    objc_setAssociatedObject(self, kDefaultsObserver, defaultsObserver, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, MASAssociatedDefaultsObserver, defaultsObserver, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end
@@ -51,8 +53,7 @@ void *kDefaultsObserver = &kDefaultsObserver;
 - (id)initWithShortcutView:(MASShortcutView *)shortcutView userDefaultsKey:(NSString *)userDefaultsKey
 {
     self = [super init];
-    if (self)
-    {
+    if (self) {
         _originalShortcut = shortcutView.shortcutValue;
         _shortcutView = shortcutView;
         _userDefaultsKey = userDefaultsKey.copy;
@@ -110,8 +111,7 @@ void *kShortcutValueObserver = &kShortcutValueObserver;
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-    if (context == kShortcutValueObserver)
-    {
+    if (context == kShortcutValueObserver) {
         if (_internalShortcutChange) return;
         MASShortcut *shortcut = [object valueForKey:keyPath];
         _internalPreferenceChange = YES;
@@ -122,8 +122,7 @@ void *kShortcutValueObserver = &kShortcutValueObserver;
 
         _internalPreferenceChange = NO;
     }
-    else
-    {
+    else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }

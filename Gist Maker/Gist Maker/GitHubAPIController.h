@@ -34,4 +34,7 @@ typedef enum GitHubAuthenticationStatus {
 
 - (void)logout;
 
+@property (nonatomic, strong) NSImage* avatar;
+@property (nonatomic, strong) NSURL* avatarURL;
+
 @end
